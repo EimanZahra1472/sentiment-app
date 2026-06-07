@@ -128,6 +128,10 @@ textarea:focus {
   border-color: #22c55e;
 }
 
+.result-neutral {
+  border-color: #f59e0b;
+}
+
 .result-negative {
   border-color: #ef4444;
 }
@@ -140,6 +144,7 @@ textarea:focus {
 }
 
 .positive-text { color: #22c55e; }
+.neutral-text { color: #f59e0b; }
 .negative-text { color: #ef4444; }
 
 .result-text {
@@ -198,6 +203,7 @@ textarea:focus {
 }
 
 .history-item-positive { border-left-color: #22c55e; }
+.history-item-neutral { border-left-color: #f59e0b; }
 .history-item-negative { border-left-color: #ef4444; }
 
 .history-text {
@@ -220,6 +226,11 @@ textarea:focus {
 .badge-positive {
   background: #14532d;
   color: #22c55e;
+}
+
+.badge-neutral {
+  background: #78350f;
+  color: #f59e0b;
 }
 
 .badge-negative {
@@ -351,6 +362,10 @@ textarea:focus {
 
 .sentence-positive {
   border-left-color: #22c55e;
+}
+
+.sentence-neutral {
+  border-left-color: #f59e0b;
 }
 
 .sentence-negative {

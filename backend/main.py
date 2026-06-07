@@ -4,9 +4,9 @@ from pydantic import BaseModel
 import pickle
 import re
 import os
+import json
 from fastapi import FastAPI, UploadFile, File
 import io
-import os
 import requests
 from groq import Groq
 from dotenv import load_dotenv
@@ -50,6 +50,23 @@ def clean_text(text):
     text = text.lower()
     text = text.strip()
     return text
+
+# Fallback model when Groq fails
+def fallback_predict(text: str, reason: str):
+    cleaned = clean_text(text)
+    vectorized = vectorizer.transform([cleaned])
+    prediction = model.predict(vectorized)[0]
+    confidence = model.predict_proba(vectorized)[0]
+    score = round(max(confidence) * 100, 2)
+    label = "POSITIVE" if prediction == 1 else "NEGATIVE"
+
+    return {
+        "text": text,
+        "sentiment": label,
+        "confidence": score,
+        "reason": f"Groq unavailable ({reason}) — using local model as fallback",
+        "model": "Local ML (fallback)"
+    }
 
 # Root endpoint
 @app.get("/")
@@ -186,15 +203,11 @@ def predict_groq(input: TextInput):
                     "content": f"Analyze the sentiment of this text: {input.text}"
                 }
             ],
-            # Updated to a supported Groq replacement for llama3-8b-8192
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
+            timeout=10,
         )
         
-        import json
-        import re
         response_text = chat_completion.choices[0].message.content
-
-        # Clean response and extract JSON
         response_text = response_text.strip()
         json_match = re.search(r'\{.*?\}', response_text, re.DOTALL)
         if json_match:
@@ -203,18 +216,20 @@ def predict_groq(input: TextInput):
             raise ValueError("No JSON found in response")
 
         sentiment = result.get("sentiment")
-        confidence = result.get("confidence")
-        if sentiment not in ("POSITIVE", "NEGATIVE"):
-            return {"error": f"Invalid sentiment from Groq response: {sentiment}. Raw: {response_text}"}
-        if not isinstance(confidence, (int, float)):
-            return {"error": f"Invalid confidence from Groq response: {confidence}. Raw: {response_text}"}
+        if sentiment not in ["POSITIVE", "NEGATIVE", "NEUTRAL"]:
+            sentiment = "NEUTRAL"
 
         return {
             "text": input.text,
             "sentiment": sentiment,
-            "confidence": confidence,
+            "confidence": result.get("confidence"),
             "reason": result.get("reason", ""),
             "model": "Groq LLaMA3"
         }
+    except json.JSONDecodeError:
+        # Fallback to basic model if Groq returns bad JSON
+        return fallback_predict(input.text, "Groq returned invalid response")
     except Exception as e:
-        return {"error": str(e)}
+        error_msg = str(e)
+        # Fallback to basic model if Groq is down
+        return fallback_predict(input.text, error_msg)

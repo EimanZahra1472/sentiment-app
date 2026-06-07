@@ -110,10 +110,28 @@ Sentiment Result (POSITIVE/NEGATIVE/NEUTRAL)
 Beautiful UI Display
 
 ## 📊 Model Performance
+
+### Local Model (Logistic Regression)
+| Metric | Score |
+|---|---|
+| Accuracy | 89.55% |
+| Precision (Positive) | 90% |
+| Recall (Positive) | 91% |
+| F1 Score (Positive) | 90% |
+| Precision (Negative) | 90% |
+| Recall (Negative) | 88% |
+| F1 Score (Negative) | 89% |
+
 - **Dataset:** IMDB 50,000 movie reviews
-- **Algorithm:** Logistic Regression + TF-IDF
-- **Accuracy:** 89.55%
-- **Advanced Model:** Groq LLaMA3 (understands sarcasm & context)
+- **Train/Test Split:** 80/20
+- **Algorithm:** Logistic Regression + TF-IDF (10,000 features)
+- **Training Samples:** 40,000
+- **Testing Samples:** 10,000
+
+### Groq LLaMA3 Model
+- Handles sarcasm, context and neutral sentiment
+- Used as primary model for complex analysis
+- Falls back to local model if API unavailable
 
 ## 👩‍💻 Author
 **Eiman Zahra**
